@@ -74,7 +74,14 @@ func (cfg *ApiConfig) textTranslateHelper(w http.ResponseWriter, r *http.Request
 		To:      lang.Language(params.TargetLang),
 	})
 	if err != nil {
-		http.Error(w, "Error translating", http.StatusInternalServerError)
+		if strings.Contains(err.Error(), "Invalid Source Language") {
+			http.Error(w, "Error translating: Invalid Source Language", http.StatusBadRequest)
+		} else if strings.Contains(err.Error(), "Invalid Target Language") {
+			http.Error(w, "Error translating: Invalid Target Language", http.StatusBadRequest)
+		} else {
+			http.Error(w, "Error translating", http.StatusInternalServerError)
+		}
+
 		log.Printf("Error translating: %v", err)
 		return
 	}
@@ -130,7 +137,13 @@ func (cfg *ApiConfig) fileTranslateHelper(w http.ResponseWriter, r *http.Request
 
 	res, err := cfg.DeeplClient.Translate(r.Context(), req)
 	if err != nil {
-		http.Error(w, "Error translating", http.StatusInternalServerError)
+		if strings.Contains(err.Error(), "Invalid Source Language") {
+			http.Error(w, "Error translating: Invalid Source Language", http.StatusBadRequest)
+		} else if strings.Contains(err.Error(), "Invalid Target Language") {
+			http.Error(w, "Error translating: Invalid Target Language", http.StatusBadRequest)
+		} else {
+			http.Error(w, "Error translating", http.StatusInternalServerError)
+		}
 		log.Printf("Error translating: %v", err)
 		return
 	}

@@ -31,11 +31,17 @@ possible stuff that i may do:
     - store metadata in postgres
     - store binary in redis with TTL
 
+- ### custom error package
+    - Refactor all errors to use a the custom error package
+    - the error package will be in the mass-translate-package 
+    - use fmt.Errorf("%s | %w : %s",package,err,x) format with error constants in the custom err package
+
 ### api endpoints by importance:
 
 - /v1/deepl/translate
 - /v1/deepl/documents (GET /id = check status or get result, DELETE /id = delete document)
 - /v1/auth/login
 - /v1/admin/users (POST = create , GET = get users , DELETE = delete user, GET /id query id)
+- /v1/admin/logs  (GET?n=10 get top n logs , GET /{id} query log id)
 - /v1/healthcheck
 

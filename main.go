@@ -15,7 +15,7 @@ func main() {
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
 	//secret := os.Getenv("SECRET_JWT")
-	//deeplAPI := os.Getenv("DEEPL_API")
+	deeplAPI := os.Getenv("DEEPL_API")
 	filepathRoot := "/app/"
 	port := "8080"
 	_, err := sql.Open("postgres", dbURL)
@@ -25,7 +25,7 @@ func main() {
 
 	//dbms := database.New(db)
 	cfg := api.ApiConfig{}
-	cfg.DeeplClientAPI = os.Getenv("DEEPL_API")
+	cfg.DeeplClientAPI = deeplAPI
 	mux := http.NewServeMux()
 
 	mux.Handle(filepathRoot, http.StripPrefix("/app/", http.FileServer(http.Dir("."))))
