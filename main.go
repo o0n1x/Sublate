@@ -53,6 +53,7 @@ func main() {
 	mux.HandleFunc("GET /api/health", api.HealthCheck)
 	mux.HandleFunc("POST /api/deepl/translate", cfg.DeeplTranslate)
 	mux.HandleFunc("POST /api/auth/login", cfg.Login)
+	mux.HandleFunc("POST /api/admin/users", cfg.Register)
 
 	s := &http.Server{
 		Handler: mux,

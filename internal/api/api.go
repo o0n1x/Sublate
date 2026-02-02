@@ -67,7 +67,7 @@ func (cfg *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := cfg.DB.GetUserByEmail(r.Context(), params.Email)
 	if err != nil {
 		log.Printf("user not found: %v", err)
-		errorRespond(w, 400, "Incorrect email or password")
+		errorRespond(w, 401, "Incorrect email or password")
 		return
 	}
 
