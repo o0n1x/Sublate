@@ -10,7 +10,7 @@ import (
 )
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, created_at, updated_at, email, is_admin
+SELECT id, created_at, updated_at, email, is_admin, hashed_password
 FROM users
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
@@ -36,6 +36,7 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 			&i.UpdatedAt,
 			&i.Email,
 			&i.IsAdmin,
+			&i.HashedPassword,
 		); err != nil {
 			return nil, err
 		}

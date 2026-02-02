@@ -1,19 +1,25 @@
 package api
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/o0n1x/mass-translate-package/format"
 	"github.com/o0n1x/mass-translate-package/lang"
 	"github.com/o0n1x/mass-translate-package/provider"
 	"github.com/o0n1x/mass-translate-package/provider/deepl"
 	"github.com/o0n1x/mass-translate-package/translator"
+	"github.com/o0n1x/mass-translate-server/internal/auth"
 	"github.com/o0n1x/mass-translate-server/internal/cache"
 	"github.com/o0n1x/mass-translate-server/internal/database"
 	"github.com/redis/go-redis/v9"
@@ -23,11 +29,16 @@ import (
 const MAXFILESIZE = 50 << 20
 
 type ApiConfig struct {
-	DB             *database.Queries
-	Redis          *redis.Client
-	Platform       string
-	DeeplClient    *deepl.DeepLClient
-	DeeplClientAPI string
+	DB               *database.Queries
+	Redis            *redis.Client
+	Platform         string
+	DeeplClient      *deepl.DeepLClient
+	DeeplClientAPI   string
+	AdminCredentials struct {
+		Email    string
+		Password string
+	}
+	SECRET_JWT string
 }
 
 // handles all API functions
@@ -36,6 +47,144 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(200)
 	w.Write([]byte("OK"))
+}
+
+func (cfg *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Password string `json:"password"`
+		Email    string `json:"email"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		log.Printf("Error decoding parameters: %s", err)
+		errorRespond(w, 400, "Invalid JSON in the request body")
+		return
+	}
+
+	user, err := cfg.DB.GetUserByEmail(r.Context(), params.Email)
+	if err != nil {
+		log.Printf("user not found: %v", err)
+		errorRespond(w, 400, "Incorrect email or password")
+		return
+	}
+
+	ok, err := auth.CheckPasswordHash(params.Password, user.HashedPassword.String)
+	if !ok {
+		log.Printf("password does not match: %v", err)
+		errorRespond(w, 401, "Incorrect email or password")
+		return
+	}
+
+	jwt_token, err := auth.MakeJWT(user.ID, cfg.SECRET_JWT, time.Hour)
+	if err != nil {
+		log.Printf("Error creating token: %v", err)
+		errorRespond(w, 500, "Failed to create token")
+		return
+	}
+
+	jsonRespond(w, 200, struct {
+		ID    uuid.UUID `json:"id"`
+		Email string    `json:"email"`
+		Token string    `json:"token"`
+	}{
+		ID:    user.ID,
+		Email: user.Email,
+		Token: jwt_token,
+	})
+
+}
+
+func (cfg *ApiConfig) Register(w http.ResponseWriter, r *http.Request) {
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		log.Printf("Error parsing header: %v", err)
+		errorRespond(w, 401, "Token missing or invalid")
+		return
+	}
+	userid, err := auth.ValidateJWT(token, cfg.SECRET_JWT)
+	if err != nil {
+		log.Printf("Error validating token: %v", err)
+		errorRespond(w, 401, "Token missing or invalid")
+		return
+	}
+	user, err := cfg.DB.GetUser(r.Context(), userid)
+	if err != nil {
+		log.Printf("Error getting user: %v", err)
+		errorRespond(w, 401, "Token missing or invalid")
+		return
+	}
+	if !user.IsAdmin {
+		log.Printf("user %v attempted creating user", user.ID)
+		errorRespond(w, 401, "Token missing or invalid")
+		return
+	}
+	type parameters struct {
+		Password string `json:"password"`
+		Email    string `json:"email"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err = decoder.Decode(&params)
+	if err != nil {
+		log.Printf("Error decoding parameters: %s", err)
+		errorRespond(w, 400, "Invalid JSON in the request body")
+		return
+	}
+
+	hashedpass, err := auth.HashPassword(params.Password)
+	if err != nil {
+		log.Printf("Error creating user: %v", err)
+		return
+	}
+
+	// is_admin is set false by default for security, and then updated manually via SQL
+	_, err = cfg.DB.CreateUser(context.Background(), database.CreateUserParams{
+		Email:          params.Email,
+		HashedPassword: sql.NullString{String: hashedpass, Valid: true},
+		IsAdmin:        false,
+	})
+	if err != nil {
+		log.Printf("User Registeration Failed: %v", err)
+		errorRespond(w, 500, "User Registeration Failed")
+		return
+	}
+
+}
+
+func (cfg *ApiConfig) RegisterAdmin() {
+	if cfg.AdminCredentials.Email == "None" {
+		log.Printf("Initial Admin Registered Cancelled")
+		return
+	}
+	_, err := cfg.DB.GetUserByEmail(context.Background(), cfg.AdminCredentials.Email)
+	if err == nil {
+		log.Printf("Initial Admin Credentials Already Registered")
+		return
+	}
+
+	hashedpass, err := auth.HashPassword(cfg.AdminCredentials.Password)
+	if err != nil {
+		log.Printf("Error creating user: %v", err)
+		return
+	}
+
+	_, err = cfg.DB.CreateUser(context.Background(), database.CreateUserParams{
+		Email:          cfg.AdminCredentials.Email,
+		HashedPassword: sql.NullString{String: hashedpass, Valid: true},
+		IsAdmin:        true,
+	})
+	if err != nil {
+		log.Printf("Initial Admin Registeration Failed: %v", err)
+		os.Exit(1)
+		return
+	}
+	log.Printf("Initial Admin Credentials Registered Successfully")
+
 }
 
 func (cfg *ApiConfig) DeeplTranslate(w http.ResponseWriter, r *http.Request) {
@@ -201,6 +350,37 @@ func fileRespond(w http.ResponseWriter, binary []byte, filename string) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"translated_%s\"", filename))
 	w.Write(binary)
+}
+
+func errorRespond(w http.ResponseWriter, code int, msg string) {
+	type returnErr struct {
+		Error string `json:"error"`
+	}
+
+	respBody := returnErr{
+		Error: msg,
+	}
+	dat, err := json.Marshal(respBody)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
+		w.WriteHeader(500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(dat)
+}
+
+func jsonRespond(w http.ResponseWriter, code int, payload interface{}) {
+	dat, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
+		w.WriteHeader(500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(dat)
 }
 
 func isFileAllowedDeepl(filename string) bool {

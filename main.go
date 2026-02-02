@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/o0n1x/mass-translate-server/internal/api"
+	"github.com/o0n1x/mass-translate-server/internal/database"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -21,7 +22,7 @@ func main() {
 	deeplAPI := os.Getenv("DEEPL_API")
 	filepathRoot := "/app/"
 	port := "8080"
-	_, err := sql.Open("postgres", dbURL)
+	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("Error connecting to PostgreSQL DB: %v", err)
 	}
@@ -34,16 +35,24 @@ func main() {
 		log.Fatalf("Error conntecting to redis : %v", err)
 	}
 
-	//dbms := database.New(db)
+	dbms := database.New(db)
 	cfg := api.ApiConfig{}
+	cfg.DB = dbms
 	cfg.DeeplClientAPI = deeplAPI
 	cfg.Redis = rdb
+	cfg.AdminCredentials.Email = os.Getenv("ADMIN_EMAIL")
+	cfg.AdminCredentials.Password = os.Getenv("ADMIN_PASSWORD")
+
+	//register admin
+	cfg.RegisterAdmin()
+
 	mux := http.NewServeMux()
 
 	mux.Handle(filepathRoot, http.StripPrefix("/app/", http.FileServer(http.Dir("."))))
 
 	mux.HandleFunc("GET /api/health", api.HealthCheck)
 	mux.HandleFunc("POST /api/deepl/translate", cfg.DeeplTranslate)
+	mux.HandleFunc("POST /api/auth/login", cfg.Login)
 
 	s := &http.Server{
 		Handler: mux,
