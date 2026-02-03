@@ -42,7 +42,7 @@ possible stuff that i may do:
 - DONE /v1/deepl/translate  
 - /v1/deepl/documents (GET /id = check status or get result, DELETE /id = delete document)
 - DONE /v1/auth/login
-- /v1/admin/users (POST = create , GET = get users , DELETE = delete user, GET /id query id)
+- DONE /v1/admin/users (POST = create , GET = get users , DELETE = delete user, GET /id query id)
 - /v1/admin/logs  (GET?n=10 get top n logs , GET /{id} query log id)
 - DONE /v1/healthcheck
 

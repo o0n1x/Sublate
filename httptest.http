@@ -40,7 +40,7 @@ POST http://localhost:8080/api/auth/login HTTP/1.1
 Content-Type: application/json
 
 {
-    "email" : "user",
+    "email" : "newuser",
     "password" : "password"
 }
 
@@ -53,4 +53,20 @@ Authorization: Bearer
 {
     "email" : "user",
     "password" : "password"
+}
+
+###
+
+GET http://localhost:8080/api/admin/users HTTP/1.1
+Authorization: Bearer 
+
+###
+
+DELETE http://localhost:8080/api/admin/users/7dc4bf02-5d31-46e3-b42c-808350f1ab8c HTTP/1.1
+Authorization: Bearer 
+
+{
+    "email" : "newuser",
+    "password" : "password",
+    "is_admin" : false
 }

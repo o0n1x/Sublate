@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 
 // constants
 const MAXFILESIZE = 50 << 20
+const MAXQUERYSIZE = 100
 
 type ApiConfig struct {
 	DB               *database.Queries
@@ -39,6 +41,14 @@ type ApiConfig struct {
 		Password string
 	}
 	SECRET_JWT string
+}
+
+type User struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Email     string    `json:"email"`
+	IsAdmin   bool      `json:"is_admin"`
 }
 
 // handles all API functions
@@ -165,15 +175,171 @@ func (cfg *ApiConfig) RegisterAdmin() {
 }
 
 func (cfg *ApiConfig) GetUsers(w http.ResponseWriter, r *http.Request) {
+	userID := r.PathValue("id")
+	if userID != "" {
+		userUUID, err := uuid.Parse(userID)
+		if err != nil {
+			log.Printf("Error invalid user ID: %v", err)
+			errorRespond(w, 400, "invalid ID")
+			return
+		}
+
+		user, err := cfg.DB.GetUser(r.Context(), userUUID)
+		if err != nil {
+			log.Printf("Error retrieving user: %v", err)
+			errorRespond(w, 404, "user not found")
+			return
+		}
+
+		jsonRespond(w, 200, User{
+			ID:        user.ID,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			Email:     user.Email,
+			IsAdmin:   user.IsAdmin,
+		})
+		return
+	}
+
+	limit := 10
+	offset := 0
+	limit_query := r.URL.Query().Get("limit")
+	offset_query := r.URL.Query().Get("offset")
+
+	if limit_query != "" {
+		parsed, err := strconv.Atoi(limit_query)
+		if err == nil && parsed > 0 && parsed <= MAXQUERYSIZE {
+			limit = parsed
+		}
+	}
+	if offset_query != "" {
+		parsed, err := strconv.Atoi(offset_query)
+		if err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	users, err := cfg.DB.GetUsers(r.Context(), database.GetUsersParams{Limit: int32(limit), Offset: int32(offset)})
+	if err != nil {
+		log.Printf("Error retrieving users: %v", err)
+		errorRespond(w, 500, "Failed to retrieve users")
+		return
+	}
+
+	returnedUsers := []User{}
+
+	for _, user := range users {
+		returnedUsers = append(returnedUsers, User{
+			ID:        user.ID,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			Email:     user.Email,
+			IsAdmin:   user.IsAdmin,
+		})
+	}
+
+	jsonRespond(w, 200, returnedUsers)
 
 }
 
 func (cfg *ApiConfig) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	userID := r.PathValue("id")
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		log.Printf("Error invalid user ID: %v", err)
+		errorRespond(w, 400, "invalid ID")
+		return
+	}
+
+	user, err := cfg.DB.GetUser(r.Context(), userUUID)
+	if err != nil {
+		log.Printf("Error retrieving user: %v", err)
+		errorRespond(w, 404, "user not found")
+		return
+	}
+
+	type parameters struct {
+		Email    *string `json:"email,omitempty"`
+		IsAdmin  *bool   `json:"is_admin,omitempty"`
+		Password *string `json:"password,omitempty"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+	err = decoder.Decode(&params)
+	if err != nil {
+		log.Printf("Error decoding parameters: %s", err)
+		errorRespond(w, 400, "Invalid JSON in the request body")
+		return
+	}
+
+	if params.Email == nil {
+		params.Email = &user.Email
+	}
+	if params.IsAdmin == nil {
+		params.IsAdmin = &user.IsAdmin
+	}
+
+	if params.Password == nil {
+		params.Password = &user.HashedPassword.String
+	} else {
+		hashedpass, err := auth.HashPassword(*params.Password)
+		if err != nil {
+			log.Printf("Error updating user: %v", err)
+			errorRespond(w, 500, "error updating user")
+			return
+		}
+		params.Password = &hashedpass
+	}
+
+	newuser, err := cfg.DB.UpdateUser(r.Context(), database.UpdateUserParams{
+		ID:             userUUID,
+		Email:          *params.Email,
+		IsAdmin:        *params.IsAdmin,
+		HashedPassword: sql.NullString{String: *params.Password, Valid: true},
+	})
+	if err != nil {
+		log.Printf("Error updating user: %v", err)
+		errorRespond(w, 500, "error updating user")
+		return
+	}
+
+	jsonRespond(w, 200, User{
+		ID:        newuser.ID,
+		UpdatedAt: newuser.UpdatedAt,
+		CreatedAt: newuser.CreatedAt,
+		Email:     newuser.Email,
+		IsAdmin:   newuser.IsAdmin,
+	})
 
 }
 
 func (cfg *ApiConfig) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	userID := r.PathValue("id")
 
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		log.Printf("Error invalid user ID: %v", err)
+		errorRespond(w, 400, "invalid ID")
+		return
+	}
+
+	_, err = cfg.DB.GetUser(r.Context(), userUUID)
+	if err != nil {
+		log.Printf("Error retrieving user: %v", err)
+		errorRespond(w, 404, "user not found")
+		return
+	}
+
+	err = cfg.DB.DeleteUser(r.Context(), userUUID)
+	if err != nil {
+		log.Printf("Error deleting user: %v", err)
+		errorRespond(w, 500, "error deleting user")
+		return
+	}
+
+	w.WriteHeader(204)
 }
 
 func (cfg *ApiConfig) DeeplTranslate(w http.ResponseWriter, r *http.Request) {
@@ -436,7 +602,7 @@ func (cfg *ApiConfig) MiddlewareIsAdmin(next func(w http.ResponseWriter, r *http
 			return
 		}
 		if !user.IsAdmin {
-			log.Printf("user %v attempted creating user", user.ID)
+			log.Printf("user %v attempted an admin action", user.ID)
 			errorRespond(w, 401, "Token missing or invalid")
 			return
 		}
