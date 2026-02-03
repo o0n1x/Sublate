@@ -40,8 +40,8 @@ POST http://localhost:8080/api/auth/login HTTP/1.1
 Content-Type: application/json
 
 {
-    "email" : "newuser",
-    "password" : "password"
+    "email" : "0n1x",
+    "password" : "0n1x"
 }
 
 ###
@@ -58,7 +58,7 @@ Authorization: Bearer
 ###
 
 GET http://localhost:8080/api/admin/users HTTP/1.1
-Authorization: Bearer 
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjaGlycHkiLCJzdWIiOiI5ZmNmNTdhMy0xNjdlLTRjNjktYTEyZS1mZTc5MTI4NThhOGYiLCJleHAiOjE3NzAxNDcwMDUsImlhdCI6MTc3MDE0MzQwNX0.YemmL7aBQlaTseTb67ecBs2xgxlO-xIBWBxOTAHdcRQ
 
 ###
 

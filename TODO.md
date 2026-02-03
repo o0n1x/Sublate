@@ -18,7 +18,8 @@ General non-specific stuff ill do
 - ### login
     - DONE admin user (usually the server owner) can create new users if needed
 - ### make a docker compose for easy server setup
-
+    - DONE
+    
 possible stuff that i may do:
 
 - ### metrics with Prometheus
