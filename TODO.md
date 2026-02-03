@@ -2,21 +2,21 @@ General non-specific stuff ill do
 
 - ### api
     - DONE translate (each provider has their own path)
-    - login (with refresh paths)
+    - DONE login (with refresh paths)
     - DONE healthcheck
-    - restricted registeration
+    - DONE restricted registeration
 - ### auth
-    - password with agron2id encryption
-    - JWT for sessions
+    - DONE password with agron2id encryption
+    - DONE JWT for sessions
     - probably wont need refresh tokens as this is a per sesion use with api costs
 - ### cache
     - DONE use redis for cacheing
     - DONE cache api requests for a set duration
 - ### database
     - DONE use postgresql
-    - store users and passwords
+    - DONE store users and passwords
 - ### login
-    - admin user (usually the server owner) can create new users if needed
+    - DONE admin user (usually the server owner) can create new users if needed
 - ### make a docker compose for easy server setup
 
 possible stuff that i may do:
@@ -41,7 +41,7 @@ possible stuff that i may do:
 
 - DONE /v1/deepl/translate  
 - /v1/deepl/documents (GET /id = check status or get result, DELETE /id = delete document)
-- /v1/auth/login
+- DONE /v1/auth/login
 - /v1/admin/users (POST = create , GET = get users , DELETE = delete user, GET /id query id)
 - /v1/admin/logs  (GET?n=10 get top n logs , GET /{id} query log id)
 - DONE /v1/healthcheck

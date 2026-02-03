@@ -78,7 +78,7 @@ func (cfg *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwt_token, err := auth.MakeJWT(user.ID, cfg.SECRET_JWT, time.Hour)
+	jwt_token, err := auth.MakeJWT(user.ID, cfg.SECRET_JWT, time.Hour) //TODO: remove hardcoded time limit
 	if err != nil {
 		log.Printf("Error creating token: %v", err)
 		errorRespond(w, 500, "Failed to create token")
@@ -99,29 +99,6 @@ func (cfg *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *ApiConfig) Register(w http.ResponseWriter, r *http.Request) {
 
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		log.Printf("Error parsing header: %v", err)
-		errorRespond(w, 401, "Token missing or invalid")
-		return
-	}
-	userid, err := auth.ValidateJWT(token, cfg.SECRET_JWT)
-	if err != nil {
-		log.Printf("Error validating token: %v", err)
-		errorRespond(w, 401, "Token missing or invalid")
-		return
-	}
-	user, err := cfg.DB.GetUser(r.Context(), userid)
-	if err != nil {
-		log.Printf("Error getting user: %v", err)
-		errorRespond(w, 401, "Token missing or invalid")
-		return
-	}
-	if !user.IsAdmin {
-		log.Printf("user %v attempted creating user", user.ID)
-		errorRespond(w, 401, "Token missing or invalid")
-		return
-	}
 	type parameters struct {
 		Password string `json:"password"`
 		Email    string `json:"email"`
@@ -129,7 +106,7 @@ func (cfg *ApiConfig) Register(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err = decoder.Decode(&params)
+	err := decoder.Decode(&params)
 	if err != nil {
 		log.Printf("Error decoding parameters: %s", err)
 		errorRespond(w, 400, "Invalid JSON in the request body")
@@ -187,6 +164,18 @@ func (cfg *ApiConfig) RegisterAdmin() {
 
 }
 
+func (cfg *ApiConfig) GetUsers(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (cfg *ApiConfig) UpdateUser(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (cfg *ApiConfig) DeleteUser(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func (cfg *ApiConfig) DeeplTranslate(w http.ResponseWriter, r *http.Request) {
 
 	if cfg.DeeplClient == nil {
@@ -204,6 +193,10 @@ func (cfg *ApiConfig) DeeplTranslate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unsupported content type", http.StatusBadRequest)
 	}
 }
+
+//
+//Helper Functions
+//
 
 func (cfg *ApiConfig) textTranslateHelper(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
@@ -392,4 +385,61 @@ func isFileAllowedDeepl(filename string) bool {
 	ext := filepath.Ext(filename)
 
 	return allowed[ext]
+}
+
+//
+// Middleware
+//
+
+func (cfg *ApiConfig) MiddlewareIsUser(next func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token, err := auth.GetBearerToken(r.Header)
+		if err != nil {
+			log.Printf("Error parsing header: %v", err)
+			errorRespond(w, 401, "Token missing or invalid, Please Login First")
+			return
+		}
+		userid, err := auth.ValidateJWT(token, cfg.SECRET_JWT)
+		if err != nil {
+			log.Printf("Error validating token: %v", err)
+			errorRespond(w, 401, "Token missing or invalid, Please Login First")
+			return
+		}
+		user, err := cfg.DB.GetUser(r.Context(), userid)
+		if err != nil {
+			log.Printf("Error getting user: %v", err)
+			errorRespond(w, 401, "Token missing or invalid, Please Login First")
+			return
+		}
+		ctx := context.WithValue(r.Context(), "user", user)
+		next(w, r.WithContext(ctx))
+	}
+}
+func (cfg *ApiConfig) MiddlewareIsAdmin(next func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token, err := auth.GetBearerToken(r.Header)
+		if err != nil {
+			log.Printf("Error parsing header: %v", err)
+			errorRespond(w, 401, "Token missing or invalid")
+			return
+		}
+		userid, err := auth.ValidateJWT(token, cfg.SECRET_JWT)
+		if err != nil {
+			log.Printf("Error validating token: %v", err)
+			errorRespond(w, 401, "Token missing or invalid")
+			return
+		}
+		user, err := cfg.DB.GetUser(r.Context(), userid)
+		if err != nil {
+			log.Printf("Error getting user: %v", err)
+			errorRespond(w, 401, "Token missing or invalid")
+			return
+		}
+		if !user.IsAdmin {
+			log.Printf("user %v attempted creating user", user.ID)
+			errorRespond(w, 401, "Token missing or invalid")
+			return
+		}
+		next(w, r)
+	}
 }

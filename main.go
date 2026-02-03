@@ -51,9 +51,13 @@ func main() {
 	mux.Handle(filepathRoot, http.StripPrefix("/app/", http.FileServer(http.Dir("."))))
 
 	mux.HandleFunc("GET /api/health", api.HealthCheck)
-	mux.HandleFunc("POST /api/deepl/translate", cfg.DeeplTranslate)
+	mux.HandleFunc("POST /api/deepl/translate", cfg.MiddlewareIsUser(cfg.DeeplTranslate))
 	mux.HandleFunc("POST /api/auth/login", cfg.Login)
-	mux.HandleFunc("POST /api/admin/users", cfg.Register)
+	mux.HandleFunc("POST /api/admin/users", cfg.MiddlewareIsAdmin(cfg.Register))
+	mux.HandleFunc("GET /api/admin/users", cfg.MiddlewareIsAdmin(cfg.GetUsers))
+	mux.HandleFunc("GET /api/admin/users/{id}", cfg.MiddlewareIsAdmin(cfg.GetUsers))
+	mux.HandleFunc("DELETE /api/admin/users/{id}", cfg.MiddlewareIsAdmin(cfg.DeleteUser))
+	mux.HandleFunc("PUT /api/admin/users/{id}", cfg.MiddlewareIsAdmin(cfg.UpdateUser))
 
 	s := &http.Server{
 		Handler: mux,
