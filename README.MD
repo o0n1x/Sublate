@@ -143,7 +143,7 @@ All protected endpoints require:
 
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.4-green)](./docs/openapi.yaml)
 
-Interactive docs: [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/o0n1x/mass-translate-server/main/docs/openapi.yaml)
+Interactive docs: [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/o0n1x/mass-translate-server/refs/heads/main/docs/openapi.yaml)
 
 ```
 Authorization: Bearer <token>
