@@ -24,7 +24,7 @@ cd mass-translate-server
 
 create a new env file:
 ```sh
-nano .env
+nano docker/.env
 ```
 
 paste the following into the env file:
@@ -61,7 +61,7 @@ cd mass-translate-server
 
 create a new env file:
 ```sh
-nano docker/.env
+nano .env
 ```
 paste the following into the env file:
 ```
