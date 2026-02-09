@@ -85,6 +85,7 @@ Example Response:
 }
 ```
 
+For more endpoints and interactive testing, open the Interactive docs: [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/o0n1x/Sublate/refs/heads/main/docs/openapi.yaml)
 
 ## Setup from source
 
