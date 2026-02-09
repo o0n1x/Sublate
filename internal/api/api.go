@@ -15,14 +15,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/o0n1x/Sublate/internal/auth"
+	"github.com/o0n1x/Sublate/internal/cache"
+	"github.com/o0n1x/Sublate/internal/database"
 	"github.com/o0n1x/mass-translate-package/format"
 	"github.com/o0n1x/mass-translate-package/lang"
 	"github.com/o0n1x/mass-translate-package/provider"
 	"github.com/o0n1x/mass-translate-package/provider/deepl"
 	"github.com/o0n1x/mass-translate-package/translator"
-	"github.com/o0n1x/mass-translate-server/internal/auth"
-	"github.com/o0n1x/mass-translate-server/internal/cache"
-	"github.com/o0n1x/mass-translate-server/internal/database"
 	"github.com/redis/go-redis/v9"
 )
 

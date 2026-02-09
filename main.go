@@ -9,8 +9,8 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/o0n1x/mass-translate-server/internal/api"
-	"github.com/o0n1x/mass-translate-server/internal/database"
+	"github.com/o0n1x/Sublate/internal/api"
+	"github.com/o0n1x/Sublate/internal/database"
 	"github.com/redis/go-redis/v9"
 )
 

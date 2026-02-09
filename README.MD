@@ -1,12 +1,16 @@
 
-# Mass-Translate Server
-this is an API server wrapper to the mass-translate package. this server features:
+# Sublate
+this is an API server wrapper to the [mass-translate package](https://github.com/o0n1x/mass-translate-package). this server features:
 - Authentication for API access
 - Admin access to DBMS through API
 - Redis DB Caching API responses to minimize API use
 - PostgresSQL DBMS to store credentials
 - Translate Text and Documents (PDF,SRT,TXT)
 - Docker Compose for quick setup
+
+## Why?
+
+I've always wanted a server or an app that I can use to translate anything from anywhere. for example, when my family needs a translation for subtitles of a movie they want to watch it.I often cant find an easy solution for it. So, I made a generalized translation server that had an API that I can use to translate anything quicky and very easily!
 
 ## Quick Start
 
@@ -18,8 +22,8 @@ This setup requires Docker and Git.
 
 clone the repo:
 ```sh
-git clone https://github.com/o0n1x/mass-translate-server.git
-cd mass-translate-server
+git clone https://github.com/o0n1x/Sublate.git
+cd Sublate
 ```
 
 create a new env file:
@@ -55,8 +59,8 @@ This setup requires Git, Go 1.25+, Docker (for databases), and Goose (for databa
 
 clone the repo:
 ```sh
-git clone https://github.com/o0n1x/mass-translate-server.git
-cd mass-translate-server
+git clone https://github.com/o0n1x/Sublate.git
+cd Sublate
 ```
 
 create a new env file:
@@ -141,7 +145,7 @@ run the server:
 
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.4-green)](./docs/openapi.yaml)
 
-Interactive docs: [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/o0n1x/mass-translate-server/refs/heads/main/docs/openapi.yaml)
+Interactive docs: [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/o0n1x/Sublate/refs/heads/main/docs/openapi.yaml)
 
 All protected endpoints require:
 

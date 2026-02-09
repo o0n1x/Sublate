@@ -1,4 +1,4 @@
-module github.com/o0n1x/mass-translate-server
+module github.com/o0n1x/Sublate
 
 go 1.25.4
 
