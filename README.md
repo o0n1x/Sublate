@@ -12,47 +12,81 @@ This is an API server wrapper to the [sublate-go](https://github.com/o0n1x/subla
 
 I've always wanted a server or an app that I can use to translate anything from anywhere. for example, when my family needs a translation for subtitles of a movie they want to watch it.I often cant find an easy solution for it. So, I made a generalized translation server that had an API that I can use to translate anything quickly and very easily!
 
-## Quick Start
 
-there is two ways to setup either through docker compose or from source.
-
-### Docker Setup (Recommended)
+## Quick Setup using Docker (Recommended)
 
 This setup requires Docker and Git.
 
-clone the repo:
+### 1. clone the repo:
 ```sh
 git clone https://github.com/o0n1x/Sublate.git
 cd Sublate
 ```
 
-create a new env file:
+### 2. create a new env file:
 ```sh
 nano docker/.env
 ```
 
-paste the following into the env file:
+Paste:
+
 ```
-DB_URL="postgres://postgresql:postgresql@postgresql:5432/masstranslate?sslmode=disable"
+DB_URL="postgres://postgresql:postgresql@postgres:5432/masstranslate?sslmode=disable"
 REDIS_URL="redis:6379"
 SECRET_JWT=YOUR_SECRET_HERE
 DEEPL_API=YOUR_API_KEY_HERE
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=password
 ```
-replace `YOUR_API_KEY_HERE` with your deepl API key and Generate JWT secret with :
-`openssl rand -base64 32`.
+- replace `YOUR_API_KEY_HERE` with your deepl API key
+- Generate JWT secret with : 
+```sh
+openssl rand -base64 32
+```
+ You can change ADMIN_EMAIL / ADMIN_PASSWORD if you like.
 
-Note: you can change `ADMIN_EMAIL` and `ADMIN_PASSWORD` to your liking.
+If you changed DB credentials, update them in `docker-compose.yml` as well.
 
-Note: If you changed DB credentials, update them in `docker-compose.yml` as well.
+#### Get a Provider API Key
 
-Start the server:
+1. Create an account at [Deepl](https://www.deepl.com/en/pro/change-plan#developer).
+2. Generate an API key from the dashboard.
+3. Copy the key and paste it in the .env file.
+
+
+
+
+### 3. Start the server:
 ```sh
 docker compose up -d
 ```
 
-### Setup from source
+### 4. Log in to get token
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@example.com", "password": "password"}'
+```
+Copy the token field from the JSON response
+
+### 5. Translate text
+```bash
+curl -X POST http://localhost:8080/api/deepl/translate \
+  -H "Authorization: Bearer <token> \
+  -H "Content-Type: application/json" \
+  -d '{"text": ["Hello", "World"], "target_lang": "FR"}'
+```
+
+Example Response:
+
+```
+{
+  "translation": ["Bonjour", "Monde"]
+}
+```
+
+
+## Setup from source
 
 This setup requires Git, Go 1.25+, Docker (for databases), and Goose (for database migration).
 
@@ -140,6 +174,7 @@ run the server:
 ```sh
 ./server
 ```
+
 
 ## API Endpoints
 
