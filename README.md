@@ -8,12 +8,12 @@ This is an API server wrapper to the [sublate-go](https://github.com/o0n1x/subla
 - Translate Text and Documents (PDF,SRT,TXT)
 - Docker Compose for quick setup
 
-## Why?
+## Motivation
 
 I've always wanted a server or an app that I can use to translate anything from anywhere. for example, when my family needs a translation for subtitles of a movie they want to watch it.I often cant find an easy solution for it. So, I made a generalized translation server that had an API that I can use to translate anything quickly and very easily!
 
 
-## Quick Setup using Docker (Recommended)
+## Quick Start using Docker
 
 This setup requires Docker and Git.
 
@@ -87,7 +87,8 @@ Example Response:
 
 For more endpoints and interactive testing, open the Interactive docs: [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/o0n1x/Sublate/refs/heads/main/docs/openapi.yaml)
 
-## Setup from source
+## Contributing
+### Setup from source
 
 This setup requires Git, Go 1.25+, Docker (for databases), and Goose (for database migration).
 
@@ -176,8 +177,12 @@ run the server:
 ./server
 ```
 
+### Submit a pull request
 
-## API Endpoints
+If you'd like to contribute, please fork the repository and open a pull request to the `main` branch.
+
+## Usage
+### API Endpoints
 
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.4-green)](./docs/openapi.yaml)
 
@@ -202,7 +207,7 @@ Authorization: Bearer <token>
 | PUT | `/api/admin/users/{id}` | Admin | Update user |
 
 
-## Environment Variables
+### Environment Variables
 
 
 |Env Variable | Description |
@@ -214,16 +219,16 @@ DEEPL_API| Deepl API used for translation by the server
 ADMIN_EMAIL| default admin email for server access. Set to Nil to not setup admin account
 ADMIN_PASSWORD | default admin password for server access
 
-## Example API Requests
+### Example API Requests
 
-### Login
+#### Login
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@example.com", "password": "password"}'
 ```
 
-### Translate Text
+#### Translate Text
 ```bash
 curl -X POST http://localhost:8080/api/deepl/translate \
   -H "Authorization: Bearer <token>" \
@@ -231,7 +236,7 @@ curl -X POST http://localhost:8080/api/deepl/translate \
   -d '{"text": ["Hello", "World"], "target_lang": "FR"}'
 ```
 
-### Translate File
+#### Translate File
 
 ```bash
 curl -X POST http://localhost:8080/api/deepl/translate \
