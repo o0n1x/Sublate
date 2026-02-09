@@ -18,11 +18,11 @@ import (
 	"github.com/o0n1x/Sublate/internal/auth"
 	"github.com/o0n1x/Sublate/internal/cache"
 	"github.com/o0n1x/Sublate/internal/database"
-	"github.com/o0n1x/mass-translate-package/format"
-	"github.com/o0n1x/mass-translate-package/lang"
-	"github.com/o0n1x/mass-translate-package/provider"
-	"github.com/o0n1x/mass-translate-package/provider/deepl"
-	"github.com/o0n1x/mass-translate-package/translator"
+	"github.com/o0n1x/sublate-go/format"
+	"github.com/o0n1x/sublate-go/lang"
+	"github.com/o0n1x/sublate-go/provider"
+	"github.com/o0n1x/sublate-go/provider/deepl"
+	"github.com/o0n1x/sublate-go/translator"
 	"github.com/redis/go-redis/v9"
 )
 

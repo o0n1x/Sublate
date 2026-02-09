@@ -1,6 +1,6 @@
 
 # Sublate
-this is an API server wrapper to the [mass-translate package](https://github.com/o0n1x/mass-translate-package). this server features:
+This is an API server wrapper to the [sublate-go](https://github.com/o0n1x/sublate-go). this server features:
 - Authentication for API access
 - Admin access to DBMS through API
 - Redis DB Caching API responses to minimize API use
@@ -10,7 +10,7 @@ this is an API server wrapper to the [mass-translate package](https://github.com
 
 ## Why?
 
-I've always wanted a server or an app that I can use to translate anything from anywhere. for example, when my family needs a translation for subtitles of a movie they want to watch it.I often cant find an easy solution for it. So, I made a generalized translation server that had an API that I can use to translate anything quicky and very easily!
+I've always wanted a server or an app that I can use to translate anything from anywhere. for example, when my family needs a translation for subtitles of a movie they want to watch it.I often cant find an easy solution for it. So, I made a generalized translation server that had an API that I can use to translate anything quickly and very easily!
 
 ## Quick Start
 
@@ -201,7 +201,7 @@ curl -X POST http://localhost:8080/api/deepl/translate \
 curl -X POST http://localhost:8080/api/deepl/translate \
   -H "Authorization: Bearer <token>" \
   -F "file=@example.txt" \
-  -F "target_lang:FR"
+  -F "target_lang=FR"
 ```
 Set \<token\> to the token you got from login.
 

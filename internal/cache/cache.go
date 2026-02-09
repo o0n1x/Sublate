@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/o0n1x/mass-translate-package/format"
-	"github.com/o0n1x/mass-translate-package/provider"
+	"github.com/o0n1x/sublate-go/format"
+	"github.com/o0n1x/sublate-go/provider"
 	"github.com/redis/go-redis/v9"
 )
 
