@@ -1,6 +1,6 @@
 
 # Sublate
-This is an API server wrapper to the [sublate-go](https://github.com/o0n1x/sublate-go). this server features:
+This is an API server wrapper to the [sublate-go](https://github.com/o0n1x/sublate-go). This server features:
 - Authentication for API access
 - Admin access to DBMS through API
 - Redis DB Caching API responses to minimize API use
@@ -72,7 +72,7 @@ Copy the token field from the JSON response
 ### 5. Translate text
 ```bash
 curl -X POST http://localhost:8080/api/deepl/translate \
-  -H "Authorization: Bearer <token> \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"text": ["Hello", "World"], "target_lang": "FR"}'
 ```
@@ -126,7 +126,7 @@ nano docker-compose.yml
 
 paste the following compose:
 ```yaml
-# services for mass translate server
+# services for Sublate server
 services:
   postgres:
     image: postgres:16-alpine
