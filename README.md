@@ -45,7 +45,7 @@ openssl rand -base64 32
 ```
  You can change ADMIN_EMAIL / ADMIN_PASSWORD if you like.
 
-If you changed DB credentials, update them in `docker-compose.yaml` as well.
+If you changed DB credentials, update them in `docker-compose.yml` as well.
 
 #### Get a Provider API Key
 
